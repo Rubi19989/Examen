@@ -1,7 +1,6 @@
 # Examen Front-End – React + TypeScript + Bootstrap 5
 
 ### Nombre: Grether Rubí Juanita Alvarado Sarat
-Puesto solicitado: Front-End Developer
 Tecnologías utilizadas: React 18 (TSX), TypeScript, Bootstrap 5, React Hook Form, jsPDF, JSON Server
 
 ### Instalación y ejecución
