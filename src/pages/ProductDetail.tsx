@@ -42,7 +42,7 @@ const ProductDetails: React.FC<Props> = ({ product, onClose }) => {
                                             style={{ maxHeight: "300px", objectFit: "cover" }}
                                         />
                                     </div>
-                                    <div className="col-md-6">
+                                    <div className="text-start col-md-6">
                                         <p>
                                             <strong>Nombre:</strong> {product.nombre}
                                         </p>
@@ -60,16 +60,6 @@ const ProductDetails: React.FC<Props> = ({ product, onClose }) => {
                             ) : (
                                 <p>No se ha seleccionado un producto.</p>
                             )}
-                        </div>
-                        <div className="modal-footer">
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                data-bs-dismiss="modal"
-                                onClick={onClose}
-                            >
-                                Cerrar
-                            </button>
                         </div>
                     </div>
                 </div>

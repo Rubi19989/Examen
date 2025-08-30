@@ -5,7 +5,7 @@
       "nombre": "Laptop",
       "descripcion": "Laptop de 16 pulgadas",
       "precio": "2000",
-      "imagen": "https://i.pcmag.com/imagery/reviews/01Nb7ULQkkPJWE4dqsewfHz-1.fit_lim.size_919x518.v1727453897.jpg"
+      "imagen": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxb-H-_bHwTi135MFCkGmcQVV8cu7AGxuy9Q&s"
     },
     {
       "id": "2",
@@ -25,7 +25,7 @@
       "id": "4",
       "nombre": "Gorra",
       "descripcion": "Gorra de Beisbol",
-      "precio": 500,
+      "precio": "800",
       "imagen": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsAFxvHCxI3C7FN5WFcdORxRC53NLnO3i_5w&s"
     },
     {

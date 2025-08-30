@@ -3,9 +3,12 @@ import { useProducts } from "../context/ProductContext";
 import { ProductCard } from "../components/ProductCard";
 import { ModalForm } from "../components/ModalForm";
 import type { Product } from "../types/Product";
-import { exportProductsAsTablePDF } from "../utils/exportPdf";
+import { exportProductsDF } from "../utils/exportPdf";
 import { ProductDetails } from "./ProductDetail";
 import { Pagination } from "../components/Pagination";
+
+
+const PAGE_SIZE = 8;
 
 const Home: React.FC = () => {
     const { products } = useProducts();
@@ -24,12 +27,14 @@ const Home: React.FC = () => {
                     : 0
         );
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length));
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const start = (page - 1) * PAGE_SIZE;
+    const currentPageItems = filtered.slice(start, start + PAGE_SIZE);
 
     const gridRef = useRef<HTMLDivElement | null>(null);
 
     const handleExportTable = async () => {
-        await exportProductsAsTablePDF(
+        await exportProductsDF(
             filtered.map((p) => ({
                 id: p.id,
                 nombre: p.nombre,
@@ -37,9 +42,9 @@ const Home: React.FC = () => {
                 precio: p.precio,
                 imagen: p.imagen,
             })),
-            { search, sort }
         );
     };
+
 
     const handleSearch = (v: string) => {
         setSearch(v);
@@ -111,10 +116,11 @@ const Home: React.FC = () => {
                     </div>
                 </div>
                 <div>
-                    <div className="d-flex flex-wrap justify-content-center gap-4" ref={gridRef}>
-                        {filtered.map(product => (
-                            <div key={product.id} className="col d-flex">
+                    <div className="d-flex flex-wrap  gap-4" ref={gridRef}>
+                        {currentPageItems.map(product => (
+                            <div>
                                 <ProductCard
+                                    key={product.id}
                                     product={product}
                                     onEdit={setSelectProduct}
                                     onView={setSelectProduct}
@@ -124,7 +130,7 @@ const Home: React.FC = () => {
                     </div>
 
 
-                    {filtered.length === 0 && (
+                    {currentPageItems.length === 0 && (
                         <div className="col-12">
                             <div className="alert alert-info" role="status">
                                 No hay productos para mostrar con el filtro actual.

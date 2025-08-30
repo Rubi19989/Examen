@@ -1,9 +1,15 @@
 import jsPDF from "jspdf";
 import autoTable, { CellHookData } from "jspdf-autotable";
 
-// Convierte una URL de imagen a DataURL (para poder incluirla en el PDF).
-export async function urlToDataUrl(url: string): Promise<string> {
-  // Si ya es dataURL, la devolvemos tal cual
+
+export type ExportMeta = {
+  search?: string;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+const urlToDataUrl = async (url: string): Promise<string> => {
   if (url.startsWith("data:image")) return url;
 
   const res = await fetch(url, { cache: "no-store" });
@@ -16,26 +22,16 @@ export async function urlToDataUrl(url: string): Promise<string> {
   });
 }
 
-export type ExportMeta = {
-  search?: string;
-  sort?: string;         // "nombre" | "precio" | ""
-  page?: number;         // 1-based
-  pageSize?: number;
-};
-
-// products: elementos ya filtrados y paginados que están en pantalla
-export async function exportProductsAsTablePDF(
+const exportProductsDF =  async(
   products: Array<{ id: string | number; nombre: string; descripcion?: string; precio: number | string; imagen: string }>,
   meta?: ExportMeta
-) {
+) =>  {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Título
   doc.setFontSize(16);
   doc.text("Catálogo de productos", pageWidth / 2, 40, { align: "center" });
 
-  // Subtítulo/metadatos
   doc.setFontSize(10);
   const now = new Date();
   const metaLine = [
@@ -46,15 +42,13 @@ export async function exportProductsAsTablePDF(
   if (metaLine) doc.text(metaLine, pageWidth / 2, 58, { align: "center" });
   doc.text(now.toLocaleString(), pageWidth - 40, 58, { align: "right" });
 
-  // Preparamos filas (sin imagen aún; la dibujamos con hook)
   const rows = products.map(p => ([
-    "", // columna imagen (la pintamos luego)
+    "",
     String(p.nombre ?? ""),
     String(p.descripcion ?? ""),
     typeof p.precio === "number" ? p.precio.toFixed(2) : p.precio,
   ]));
 
-  // Intentaremos convertir todas las imágenes a dataURL (si alguna falla, la omitimos)
   const images: (string | null)[] = await Promise.all(
     products.map(async p => {
       try {
@@ -69,26 +63,33 @@ export async function exportProductsAsTablePDF(
     startY: 80,
     head: [["Img", "Nombre", "Descripción", "Precio"]],
     body: rows,
-    styles: { fontSize: 9, cellPadding: 6, valign: "middle" },
-    headStyles: { fillColor: [33, 37, 41] }, // Bootstrap-like dark
+    styles: { fontSize: 10, cellPadding: 8, valign: "middle", minCellHeight: 50 },
+    headStyles: { fillColor: [33, 37, 41] },
     columnStyles: {
-      0: { cellWidth: 40 },  // columna imagen
-      1: { cellWidth: 160 },
-      2: { cellWidth: 250 },
+      0: { cellWidth: 60 },
+      1: { cellWidth: 140 },
+      2: { cellWidth: 230 },
       3: { cellWidth: 70, halign: "right" },
     },
+
+    margin: { top: 80, left: 20, right: 20 },
     didDrawCell: (data: CellHookData) => {
-      // Pintamos miniatura en la columna 0
       if (data.section === "body" && data.column.index === 0) {
         const idx = data.row.index;
         const img = images[idx];
         if (img) {
-          const { x, y } = data.cell;
-          const size = 32; // thumbnail
+          const { x, y, height } = data.cell;
+          const size = 40;
           try {
-            doc.addImage(img, "PNG", x + 4, y + (data.cell.height - size) / 2, size, size);
+            doc.addImage(
+              img,
+              "PNG",
+              x + 4,
+              y + (height - size) / 2,
+              size, size
+            );
           } catch {
-            // si falla, no detenemos la exportación
+            throw Error("Error al exportar")
           }
         }
       }
@@ -97,3 +98,5 @@ export async function exportProductsAsTablePDF(
 
   doc.save("productos.pdf");
 }
+
+export {exportProductsDF}

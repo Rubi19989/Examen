@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from "react-hook-form"
 import type { Product } from '../types/Product'
 import { useProducts } from '../context/ProductContext'
+import '../assets/styles/ProductForm.css'
 
 interface FormData {
     nombre: string,
@@ -18,8 +19,15 @@ interface Props {
 const ProductForm: React.FC<Props> = ({ selectProduct = null, onClose = () => { } }) => {
 
     const { addProduct, editProduct } = useProducts();
-    const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        reset
+    } = useForm<FormData>();
     const [previsualizar, setPrevisualizar] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const { ref: imageRef, ...imageRest } = register("imagen", { required: false });
 
     useEffect(() => {
         if (selectProduct) {
@@ -34,10 +42,12 @@ const ProductForm: React.FC<Props> = ({ selectProduct = null, onClose = () => { 
                 nombre: "",
                 descripcion: "",
                 precio: 0,
-                imagen: undefined as any
-            })
+            });
+            setPrevisualizar(null)
         }
-        setPrevisualizar(null)
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     }, [selectProduct, reset]);
 
     const onSubmit = async (data: FormData) => {
@@ -49,8 +59,8 @@ const ProductForm: React.FC<Props> = ({ selectProduct = null, onClose = () => { 
                 nombre: data.nombre,
                 descripcion: data.descripcion,
                 precio: data.precio,
-                imagen: file ? (reader.result as string) 
-                : selectProduct?.imagen || previsualizar || "",
+                imagen: file ? (reader.result as string)
+                    : selectProduct?.imagen || previsualizar || "",
             };
 
             if (selectProduct) {
@@ -84,7 +94,7 @@ const ProductForm: React.FC<Props> = ({ selectProduct = null, onClose = () => { 
 
     return (
         <>
-            <form className='card p-4 shadow-sm' onSubmit={handleSubmit(onSubmit)}>
+            <form className='product-form p-4 shadow-sm' onSubmit={handleSubmit(onSubmit)}>
                 {/* <h4 className='mb-3'>Crear Producto</h4> */}
                 <div className='mb-3'>
                     <label className='form-label'>Nombre</label>
@@ -115,7 +125,7 @@ const ProductForm: React.FC<Props> = ({ selectProduct = null, onClose = () => { 
                     <input
                         type="number"
                         className={`form-control ${errors.precio ? "is-invalid" : ""}`}
-                        {...register("precio", { required: true, minLength: 1 })}
+                        {...register("precio", { required: true, min: 1 })}
                     />
                     {errors.precio && (
                         <div className='invalid-feedback'>
@@ -127,8 +137,12 @@ const ProductForm: React.FC<Props> = ({ selectProduct = null, onClose = () => { 
                     <label className='form-label'>Imagen</label>
                     <input
                         type="file"
+                        {...imageRest}
+                        ref={(el) => {
+                            imageRef(el);
+                            fileInputRef.current = el;
+                        }}
                         className={`form-control ${errors.imagen ? "is-invalid" : ""}`}
-                        {...register("imagen", { required: false })}
                         onChange={handleImageChange}
                     />
                     {errors.imagen && (
@@ -142,10 +156,24 @@ const ProductForm: React.FC<Props> = ({ selectProduct = null, onClose = () => { 
                     <div className='mb-3 text-center'>
                         <img
                             src={previsualizar}
-                            alt={previsualizar}
+                            alt="preview"
                             className='img-thumbnail'
                             style={{ maxHeight: "200px" }}
                         />
+                        <br />
+                        <button
+                            type='button'
+                            className='btn btn-sm btn-outline-danger'
+                            onClick={() => {
+                                setPrevisualizar(null);
+                                if (fileInputRef.current) {
+                                    fileInputRef.current.value = ""
+                                }
+                            }
+                            }
+                        >
+                            Quitar Imagen
+                        </button>
                     </div>
                 )}
 
